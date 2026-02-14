@@ -1,0 +1,21 @@
+package com.example.rules
+
+import com.example.Person
+import com.example.Message
+
+// Simple rule
+rule "Adult person"
+when
+    Person(age >= 18)
+then
+    System.out.println("Adult detected");
+end
+
+/* Multi-line
+   comment */
+rule "Greeting rule"
+when
+    Message(text == "hello")
+then
+    System.out.println("Hello world");
+end

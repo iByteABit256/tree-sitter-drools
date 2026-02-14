@@ -1,0 +1,42 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+  "grammars": [
+    {
+      "name": "drools",
+      "camelcase": "Drools",
+      "title": "Drools",
+      "scope": "source.drools",
+      "file-types": [
+        "drl"
+      ],
+      "injection-regex": "^drools$",
+      "class-name": "TreeSitterDrools"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "AGPLv3",
+    "description": "Drools gramamr for treesitter",
+    "authors": [
+      {
+        "name": "Pavlos Smith",
+        "email": "paulsmith4561@proton.me",
+        "url": "https://github.com/iByteABit256"
+      }
+    ],
+    "links": {
+      "repository": "https://github.com/iByteABit256/tree-sitter-drools.git",
+      "funding": ""
+    }
+  },
+  "bindings": {
+    "c": false,
+    "go": false,
+    "java": true,
+    "node": false,
+    "python": false,
+    "rust": false,
+    "swift": false,
+    "zig": false
+  }
+}
