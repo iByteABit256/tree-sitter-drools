@@ -1,0 +1,20 @@
+package com.example
+
+import com.example.Person
+
+global java.util.List results
+
+rule "Adult"
+salience 10
+when
+    not Person(age < 18)
+    exists Person(name == "Bob")
+    Person(age >= 18, name != null)
+    eval(5 > 3)
+then
+    System.out.println("Adult found");
+    {
+        int x = 5;
+        System.out.println(x);
+    }
+end

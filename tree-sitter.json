@@ -10,7 +10,9 @@
         "drl"
       ],
       "injection-regex": "^drools$",
-      "class-name": "TreeSitterDrools"
+      "class-name": "TreeSitterDrools",
+      "highlights": "./queries/highlights.scm"
+      "locals": "./queries/locals.scm"
     }
   ],
   "metadata": {
