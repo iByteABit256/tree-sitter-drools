@@ -8,7 +8,7 @@
   <artifactId>jtreesitter-drools</artifactId>
   <name>JTreeSitter Drools</name>
   <version>0.1.0</version>
-  <description>Drools gramamr for treesitter</description>
+  <description>Drools grammar for tree-sitter</description>
   <url>https://github.com/ibyteabit256/tree-sitter-drools.git</url>
   <licenses>
     <license>

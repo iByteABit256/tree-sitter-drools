@@ -1,2 +1,2 @@
 # tree-sitter-drools
-Drools grammar for treesitter
+Drools grammar for tree-sitter

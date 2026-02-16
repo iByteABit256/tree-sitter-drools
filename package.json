@@ -1,7 +1,7 @@
 {
   "name": "tree-sitter-drools",
   "version": "0.1.0",
-  "description": "Drools gramamr for treesitter",
+  "description": "Drools grammar for tree-sitter",
   "type": "module",
   "repository": {
     "type": "git",
