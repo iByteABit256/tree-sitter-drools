@@ -72,7 +72,18 @@
   "new"
   "this"
   "super"
+  "insert"
+  "insertLogical"
+  "update"
+  "modify"
+  "delete"
+  "retract"
 ] @keyword.control
+
+;; Import modifiers
+[
+  "static"
+] @keyword.modifier
 
 ;; ============================================================
 ;; RULE ATTRIBUTES
@@ -109,6 +120,23 @@
   "excludes"
   "soundslike"
   "str"
+] @keyword.operator
+
+;; Temporal operators
+[
+  "after"
+  "before"
+  "coincides"
+  "during"
+  "includes"
+  "finishes"
+  "finishedby"
+  "meets"
+  "metby"
+  "overlaps"
+  "overlappedby"
+  "starts"
+  "startedby"
 ] @keyword.operator
 
 ;; ============================================================
@@ -175,6 +203,11 @@
   "++"
   "--"
   "instanceof"
+] @operator
+
+;; Drools-specific operators
+[
+  ":="  ; unification
 ] @operator
 
 ;; ============================================================
@@ -249,6 +282,17 @@
 (unif
   (identifier) @variable.parameter)
 
+;; Constraint bindings
+(constraint_binding
+  (label
+    (identifier) @variable.parameter)
+  (identifier) @variable.member)
+
+(constraint_unification
+  (unif
+    (identifier) @variable.parameter)
+  (identifier) @variable.member)
+
 ;; ============================================================
 ;; EXPRESSIONS
 ;; ============================================================
@@ -289,6 +333,9 @@
   "@" @punctuation.special
   (qualified_name) @attribute)
 
+(annotation_element_value_pair
+  key: (identifier) @variable.parameter)
+
 ;; ============================================================
 ;; VARIABLES AND PARAMETERS
 ;; ============================================================
@@ -297,6 +344,9 @@
   (identifier) @variable.parameter)
 
 (variable_declaration
+  (identifier) @variable)
+
+(for_init
   (identifier) @variable)
 
 ;; ============================================================
@@ -318,7 +368,6 @@
   "."
   "?."
   "#"
-  ":="
 ] @punctuation.delimiter
 
 ;; ============================================================
@@ -356,4 +405,3 @@
 
 ;; Qualified names in expressions
 (qualified_name) @variable
-

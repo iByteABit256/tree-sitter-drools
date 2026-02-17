@@ -378,29 +378,6 @@ then[largeClaim]
     logDecision("Large Claim", "ESCALATED", "Senior review + manager approval");
 end
 
-rule "Age-Based Customer Categorization"
-when
-    $customer : Customer($age : age)
-        if($age < 25) do[young]
-        else if($age >= 25 && $age < 65) do[standard]
-        else do[senior]
-then[young]
-    modify($customer) { 
-        setCategory("YOUNG_DRIVER"),
-        setBaseRate(1.5)
-    };
-then[standard]
-    modify($customer) { 
-        setCategory("STANDARD"),
-        setBaseRate(1.0)
-    };
-then[senior]
-    modify($customer) { 
-        setCategory("SENIOR"),
-        setBaseRate(0.8)
-    };
-end
-
 // ============================================================
 // CONDITIONAL BRANCHES IN LHS
 // ============================================================

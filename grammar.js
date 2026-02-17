@@ -24,6 +24,7 @@ export default grammar({
     [$.lhs_pattern_bind],
     [$.annotation],
     [$.attributes],
+    [$.attribute],
     [$.attribute, $.parenthesized_expression],
     [$.lhs_expression, $.lhs_unary],
     [$.nested_constraint, $.primary_expression, $.qualified_name],
@@ -33,6 +34,7 @@ export default grammar({
     [$.method_call, $.field_access],
     [$.lhs_group_by],
     [$.from_accumulate],
+    [$.primary_expression, $.annotation_element_value_pair, $.qualified_name],
   ],
 
   rules: {
@@ -185,6 +187,7 @@ export default grammar({
     //   System.out.println("Adult");
     // end
     rule_decl: $ => seq(
+      repeat($.annotation),
       "rule",
       field("name", choice($.string_literal, $.identifier)),
       optional(seq("extends", $.string_literal)),
@@ -654,11 +657,10 @@ export default grammar({
         field("value", $.string_literal)
       ),
       // String list attributes
-      prec.left(1, seq(
+      seq(
         field("name", "calendars"),
-        field("value", $.string_literal),
-        repeat(seq(",", field("value", $.string_literal)))
-      )),
+        field("value", commaSep1($.string_literal)),
+      ),
       // Int or chunk attributes
       seq(
         field("name", choice("timer", "duration")),
@@ -867,7 +869,7 @@ export default grammar({
       "(",
       choice(
         seq(
-          optional($.variable_declaration),
+          optional($.for_init),
           ";",
           optional($.expression),
           ";",
@@ -877,6 +879,14 @@ export default grammar({
       ),
       ")",
       choice($.block, $.expression_statement)
+    ),
+
+    for_init: $ => seq(
+      $.type,
+      commaSep1(seq(
+        $.identifier,
+        optional(seq("=", $.expression))
+      ))
     ),
 
     while_statement: $ => seq(
@@ -938,14 +948,36 @@ export default grammar({
     annotation: $ => seq(
       "@",
       $.qualified_name,
-      optional(seq(
-        "(",
-        optional(choice(
-          $.chunk,
-          commaSep1($.expression)
-        )),
-        ")"
-      ))
+      optional($.annotation_args)
+    ),
+
+    annotation_args: $ => seq(
+      "(",
+      optional(choice(
+        $.annotation_element_value_pairs,
+        $.annotation_value
+      )),
+      ")"
+    ),
+
+    annotation_element_value_pairs: $ => commaSep1($.annotation_element_value_pair),
+
+    annotation_element_value_pair: $ => seq(
+      field("key", $.identifier),
+      "=",
+      field("value", $.annotation_value)
+    ),
+
+    annotation_value: $ => choice(
+      $.annotation,          // nested annotation
+      $.annotation_array,    // array of values
+      $.expression           // expression (string, number, identifier, etc.)
+    ),
+
+    annotation_array: $ => seq(
+      "{",
+      optional(commaSep1($.annotation_value)),
+      "}"
     ),
 
     // ============================================================
@@ -983,11 +1015,11 @@ export default grammar({
     number: $ => choice(
       /\d+/,                        // Integer
       /\d+\.\d+/,                   // Float
-      /0[xX][0-9a-fA-F]+/,         // Hex
-      /\d+[lLfFdD]/,               // Long/Float/Double suffix
-      /\d+\.\d+[fFdD]/,            // Float/Double with decimal
+      /0[xX][0-9a-fA-F]+/,          // Hex
+      /\d+[lLfFdD]/,                // Long/Float/Double suffix
+      /\d+\.\d+[fFdD]/,             // Float/Double with decimal
       /\d+[Bb]/,                    // BigDecimal
-      /\d+\.\d+[Bb]/               // BigDecimal with decimal
+      /\d+\.\d+[Bb]/                // BigDecimal with decimal
     ),
 
     boolean_literal: $ => choice("true", "false"),

@@ -23,6 +23,12 @@
 ;; For loop scope
 (for_statement) @local.scope
 
+;; If statement scope
+(if_statement) @local.scope
+
+;; While loop scope
+(while_statement) @local.scope
+
 ;; ============================================================
 ;; DEFINITIONS
 ;; ============================================================
@@ -87,6 +93,15 @@
 (unif
   (identifier) @local.definition.var)
 
+;; Constraint bindings - field value bindings
+(constraint_binding
+  (label
+    (identifier) @local.definition.var))
+
+(constraint_unification
+  (unif
+    (identifier) @local.definition.var))
+
 ;; Accumulate function bindings
 (accumulate_function
   (label
@@ -106,6 +121,10 @@
   (identifier) @local.definition.var)
 
 ;; For loop variables
+(for_init
+  (identifier) @local.definition.var)
+
+;; Enhanced for loop variable
 (for_statement
   (identifier) @local.definition.var)
 
@@ -121,13 +140,27 @@
 (lhs_pattern
   type: (qualified_name) @local.reference.type)
 
-;; Type references in declarations
+;; Type references in declarations and expressions
 (type
   (qualified_type
     (qualified_name) @local.reference.type))
 
 (type
   (primitive_type) @local.reference.type)
+
+;; Type arguments in generics
+(type_argument
+  (type
+    (qualified_type
+      (qualified_name) @local.reference.type)))
+
+;; Object creation type reference
+(object_creation
+  (type) @local.reference.type)
+
+;; Cast expression type reference
+(cast_expression
+  (type) @local.reference.type)
 
 ;; Field access references
 (field_access
@@ -154,6 +187,28 @@
 ;; Import references
 (import_decl
   (import_path) @local.reference.namespace)
+
+;; Extends references (type inheritance)
+(type_declaration
+  (qualified_name) @local.reference.type)
+
+;; Rule extension reference
+(rule_decl
+  (string_literal) @local.reference.function)
+
+;; Constraint field references (right side of binding)
+(constraint_binding
+  (identifier) @local.reference.field)
+
+(constraint_unification
+  (identifier) @local.reference.field)
+
+;; Pattern source references (entry-points, windows)
+(from_entry_point
+  (string_literal) @local.reference.constant)
+
+(from_window
+  (identifier) @local.reference.constant)
 
 ;; ============================================================
 ;; SPECIAL CASES
