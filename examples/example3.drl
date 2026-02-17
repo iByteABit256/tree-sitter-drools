@@ -1,0 +1,689 @@
+package com.example.insurance.rules
+
+import com.example.model.Customer
+import com.example.model.Policy
+import com.example.model.Claim
+import static com.example.utils.DateUtils.*
+import function com.example.calculator.RiskCalculator.calculateRisk
+
+// Global variables - test @local.definition.var
+global org.slf4j.Logger logger
+global java.util.List approvedClaims
+global com.example.service.NotificationService notifier
+
+// ============================================================
+// TYPE DECLARATIONS - test @local.definition.type
+// ============================================================
+
+declare Customer
+    customerId : String
+    name : String
+    age : int = 0
+    riskScore : double
+    policies : List
+end
+
+declare trait VIPCustomer
+    loyaltyYears : int
+    discountRate : double = 0.15
+end
+
+declare enum ClaimStatus
+    SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED, PAID;
+end
+
+declare ClaimSubmittedEvent
+    @role(event)
+    @timestamp(submittedAt)
+    @duration(processingTime)
+    @expires(90d)
+    claimId : String
+    customerId : String
+    amount : double
+    submittedAt : long
+    processingTime : long
+end
+
+declare window recentClaims
+    Claim() over window:time(30d)
+end
+
+// ============================================================
+// FUNCTIONS - test @local.definition.function and parameters
+// ============================================================
+
+function void logDecision(String ruleName, String decision, String reason) {
+    logger.info("Rule: " + ruleName + ", Decision: " + decision + ", Reason: " + reason);
+}
+
+function double calculatePremiumDiscount(Customer customer, Policy policy) {
+    double baseDiscount = 0.0;
+    
+    // Local variables - test @local.definition.var
+    int age = customer.getAge();
+    int yearsWithCompany = customer.getLoyaltyYears();
+    
+    if (age > 65) {
+        baseDiscount = 0.05;
+    } else if (age > 50) {
+        baseDiscount = 0.03;
+    }
+    
+    if (yearsWithCompany > 10) {
+        baseDiscount += 0.10;
+    } else if (yearsWithCompany > 5) {
+        baseDiscount += 0.05;
+    }
+    
+    return baseDiscount;
+}
+
+function boolean isHighRisk(double riskScore, int claimCount) {
+    return riskScore > 75.0 || claimCount > 5;
+}
+
+// ============================================================
+// QUERIES - test @local.definition.function and query parameters
+// ============================================================
+
+query "findCustomersByRisk" (double minRisk, double maxRisk)
+    // Pattern binding - test @local.definition.var
+    $customer : Customer(riskScore >= minRisk, riskScore <= maxRisk)
+end
+
+query "findUnpaidClaims"
+    $claim : Claim(status == ClaimStatus.APPROVED, paid == false)
+    $policy : Policy(policyId == $claim.policyId)
+    $customer : Customer(customerId == $policy.customerId)
+end
+
+query "findVIPCustomers"
+    $customer : Customer() and VIPCustomer(this == $customer)
+end
+
+// ============================================================
+// SIMPLE RULES WITH PATTERN BINDINGS
+// ============================================================
+
+rule "Classify Customer Risk - Basic"
+    salience 100
+    no-loop true
+when
+    // Pattern binding creates local variable $c
+    $c : Customer(riskScore == 0)
+then
+    // Reference to $c - test @local.reference.var
+    double risk = calculateRisk($c);
+    modify($c) { setRiskScore(risk) };
+    logDecision("Classify Customer Risk", "CALCULATED", "Initial risk assessment");
+end
+
+rule "High Risk Customer Alert"
+    salience 90
+when
+    // Multiple pattern bindings
+    $customer : Customer($score : riskScore, $score > 75.0)
+    $policy : Policy(customerId == $customer.customerId, active == true)
+then
+    // All these reference the bound variables
+    logger.warn("High risk customer: " + $customer.getName() + " (Score: " + $score + ")");
+    notifier.sendAlert($customer, $policy);
+end
+
+// ============================================================
+// COMPLEX PATTERN MATCHING WITH CONSTRAINTS
+// ============================================================
+
+rule "Premium Discount for Safe Drivers"
+    salience 80
+    activation-group "discounts"
+when
+    $customer : Customer(
+        age >= 25,
+        age <= 65,
+        riskScore < 50.0,
+        address.city == "Boston",
+        address.state matches "MA|NH|VT"
+    )
+    $policy : Policy(
+        customer == $customer,
+        type == "AUTO",
+        yearsActive >= 5,
+        claimCount < 2
+    )
+then
+    double discount = calculatePremiumDiscount($customer, $policy);
+    modify($policy) { 
+        setDiscountRate(discount),
+        setPremium($policy.getPremium() * (1.0 - discount))
+    };
+    logDecision("Premium Discount", "APPROVED", "Safe driver criteria met");
+end
+
+// ============================================================
+// EXISTS / NOT OPERATORS
+// ============================================================
+
+rule "First Time Customer Welcome"
+when
+    $customer : Customer($id : customerId)
+    not Policy(customerId == $id)
+then
+    notifier.sendWelcomeEmail($customer);
+    logDecision("Welcome Email", "SENT", "First time customer");
+end
+
+rule "Customer Has Active Claims"
+when
+    $customer : Customer()
+    exists Claim(
+        customerId == $customer.customerId,
+        status memberOf [ClaimStatus.SUBMITTED, ClaimStatus.UNDER_REVIEW]
+    )
+then
+    modify($customer) { setHasActiveClaims(true) };
+end
+
+// ============================================================
+// EVAL OPERATOR
+// ============================================================
+
+rule "Complex Eligibility Check"
+when
+    $customer : Customer()
+    $policy : Policy(customer == $customer)
+    eval(
+        isHighRisk($customer.getRiskScore(), $policy.getClaimCount()) == false &&
+        validateCustomerStatus($customer) &&
+        $policy.getPremium() > 0
+    )
+then
+    approvePolicy($policy);
+end
+
+// ============================================================
+// FORALL OPERATOR
+// ============================================================
+
+rule "All Policies Paid - Good Standing"
+when
+    $customer : Customer($custId : customerId)
+    forall(
+        $policy : Policy(customerId == $custId)
+        Payment(policyId == $policy.policyId, status == "PAID")
+    )
+then
+    modify($customer) { 
+        setStatus("GOOD_STANDING"),
+        setLastPaymentDate(new Date())
+    };
+end
+
+// ============================================================
+// ACCUMULATE - test binding variables
+// ============================================================
+
+rule "Calculate Total Annual Premium"
+when
+    $customer : Customer($custId : customerId)
+    // Accumulate bindings create local variables
+    accumulate(
+        $policy : Policy(customerId == $custId, active == true);
+        $totalPremium : sum($policy.getPremium()),
+        $policyCount : count($policy),
+        $avgPremium : average($policy.getPremium())
+    )
+then
+    // References to accumulate-bound variables
+    logger.info("Customer " + $customer.getName() + 
+                " has " + $policyCount + " policies" +
+                " with total premium: $" + $totalPremium +
+                " (avg: $" + $avgPremium + ")");
+    
+    modify($customer) { 
+        setTotalAnnualPremium($totalPremium),
+        setPolicyCount($policyCount.intValue())
+    };
+end
+
+rule "High Claim Frequency Detection"
+when
+    $customer : Customer()
+    accumulate(
+        $claim : Claim(
+            customerId == $customer.customerId,
+            submittedDate after[0, 365d] new Date()
+        );
+        $claimCount : count($claim),
+        $totalAmount : sum($claim.getAmount());
+        $claimCount > 5
+    )
+then
+    logger.warn("High claim frequency: " + $claimCount + 
+                " claims totaling $" + $totalAmount);
+    modify($customer) { 
+        setRiskScore($customer.getRiskScore() + 20.0),
+        setHighClaimFrequency(true)
+    };
+end
+
+// ============================================================
+// ACCUMULATE WITH INIT/ACTION/RESULT
+// ============================================================
+
+rule "Custom Risk Calculation"
+when
+    $customer : Customer()
+    $weightedRisk : Number() from accumulate(
+        $claim : Claim(customerId == $customer.customerId);
+        init( double total = 0.0; int count = 0; ),
+        action( 
+            total += $claim.getAmount() * $claim.getSeverity();
+            count++;
+        ),
+        result( count > 0 ? total / count : 0.0 )
+    )
+then
+    logger.info("Weighted risk for " + $customer.getName() + ": " + $weightedRisk);
+end
+
+// ============================================================
+// GROUPBY OPERATOR
+// ============================================================
+
+rule "Claims By Region Analysis"
+when
+    groupby(
+        $claim : Claim(status == ClaimStatus.APPROVED);
+        $region : $claim.getRegion();
+        $count : count($claim),
+        $avgAmount : average($claim.getAmount())
+    )
+then
+    logger.info("Region: " + $region + 
+                ", Claims: " + $count + 
+                ", Avg Amount: $" + $avgAmount);
+end
+
+// ============================================================
+// FROM COLLECT
+// ============================================================
+
+rule "Review Customers with Multiple Claims"
+when
+    $customer : Customer()
+    $claims : List() from collect(
+        Claim(customerId == $customer.customerId, 
+              status == ClaimStatus.UNDER_REVIEW)
+    )
+    eval($claims.size() >= 3)
+then
+    logger.warn("Customer " + $customer.getName() + 
+                " has " + $claims.size() + " claims under review");
+    escalateForManualReview($customer, $claims);
+end
+
+// ============================================================
+// FROM ENTRY-POINT
+// ============================================================
+
+rule "Process Real-time Claim Submission"
+when
+    $claim : Claim(amount > 10000) from entry-point "claims-stream"
+    $policy : Policy(policyId == $claim.policyId, active == true)
+then
+    logger.info("Large claim submitted: $" + $claim.getAmount());
+    notifier.sendHighValueClaimAlert($claim, $policy);
+end
+
+// ============================================================
+// FROM WINDOW
+// ============================================================
+
+rule "Detect Claim Pattern"
+when
+    $customer : Customer()
+    $count : Number(intValue >= 3) from accumulate(
+        $claim : Claim(customerId == $customer.customerId) from window recentClaims,
+        count($claim)
+    )
+then
+    logger.warn("Pattern detected: " + $count + " claims in 30 days");
+    modify($customer) { setFraudRisk(true) };
+end
+
+// ============================================================
+// NAMED CONSEQUENCES - test @local.definition.label
+// ============================================================
+
+rule "Tiered Claim Processing"
+when
+    $claim : Claim($amount : amount)
+        if($amount < 1000) do[smallClaim]
+        else if($amount < 10000) do[mediumClaim]
+        else do[largeClaim]
+then
+    // Default consequence
+    logger.info("Processing claim: " + $claim.getClaimId());
+then[smallClaim]
+    // Reference to named consequence label
+    autoApproveClaim($claim);
+    logDecision("Small Claim", "AUTO_APPROVED", "Amount < $1000");
+then[mediumClaim]
+    assignToAdjuster($claim, "JUNIOR");
+    logDecision("Medium Claim", "ASSIGNED", "Junior adjuster review");
+then[largeClaim]
+    assignToAdjuster($claim, "SENIOR");
+    requireManagerApproval($claim);
+    logDecision("Large Claim", "ESCALATED", "Senior review + manager approval");
+end
+
+rule "Age-Based Customer Categorization"
+when
+    $customer : Customer($age : age)
+        if($age < 25) do[young]
+        else if($age >= 25 && $age < 65) do[standard]
+        else do[senior]
+then[young]
+    modify($customer) { 
+        setCategory("YOUNG_DRIVER"),
+        setBaseRate(1.5)
+    };
+then[standard]
+    modify($customer) { 
+        setCategory("STANDARD"),
+        setBaseRate(1.0)
+    };
+then[senior]
+    modify($customer) { 
+        setCategory("SENIOR"),
+        setBaseRate(0.8)
+    };
+end
+
+// ============================================================
+// CONDITIONAL BRANCHES IN LHS
+// ============================================================
+
+rule "Dynamic Risk Assessment"
+when
+    $customer : Customer($score : riskScore)
+        if($score > 80) break[reject]
+        else if($score > 60) do[requireReview]
+        else do[approve]
+    $policy : Policy(customer == $customer)
+then
+    // Default action
+    logger.info("Risk assessment completed for " + $customer.getName());
+then[reject]
+    rejectApplication($policy);
+    notifier.sendRejectionLetter($customer);
+then[requireReview]
+    $policy.setStatus("PENDING_REVIEW");
+    assignToUnderwriter($policy);
+then[approve]
+    $policy.setStatus("APPROVED");
+    notifier.sendApprovalLetter($customer);
+end
+
+// ============================================================
+// DROOLS OPERATORS - matches, memberOf, contains, soundslike
+// ============================================================
+
+rule "Validate Email Format"
+when
+    $customer : Customer(
+        email matches "^[A-Za-z0-9+_.-]+@(.+)$",
+        status not memberOf ["INACTIVE", "SUSPENDED"]
+    )
+then
+    sendEmailVerification($customer);
+end
+
+rule "Coverage Type Validation"
+when
+    $policy : Policy(
+        coverageTypes contains "COMPREHENSIVE",
+        exclusions excludes "FLOOD"
+    )
+then
+    logger.info("Comprehensive coverage without flood exclusion");
+end
+
+rule "Duplicate Name Detection"
+when
+    $customer1 : Customer($name1 : name)
+    $customer2 : Customer(
+        this != $customer1,
+        name soundslike $name1,
+        address.zip == $customer1.address.zip
+    )
+then
+    logger.warn("Possible duplicate: " + $name1 + " and " + $customer2.getName());
+    flagForReview($customer1, $customer2);
+end
+
+// ============================================================
+// TEMPORAL OPERATORS
+// ============================================================
+
+rule "Claim Submission Timing"
+when
+    $incident : Incident($incidentDate : date)
+    $claim : Claim(
+        incidentId == $incident.id,
+        this after[0d, 30d] $incident
+    )
+then
+    logger.info("Claim submitted within 30 days of incident");
+    $claim.setTimeliness("ON_TIME");
+end
+
+rule "Policy Renewal Window"
+when
+    $policy : Policy($expiry : expiryDate)
+    $renewal : RenewalNotice(
+        policyId == $policy.policyId,
+        this before[30d, 60d] $expiry
+    )
+then
+    sendRenewalReminder($policy);
+end
+
+// ============================================================
+// ALL ATTRIBUTES EXAMPLE
+// ============================================================
+
+rule "Complex Rule with All Attributes"
+    salience 50
+    enabled true
+    no-loop true
+    auto-focus
+    lock-on-active
+    refract
+    direct
+    activation-group "priority-processing"
+    ruleflow-group "validation-phase"
+    date-effective "01-Jan-2024"
+    date-expires "31-Dec-2024"
+    dialect "mvel"
+    calendars "weekdays", "business-hours"
+    timer(int: 0 1h)
+    duration 3600000
+when
+    $customer : Customer(validated == false)
+    $policy : Policy(customer == $customer)
+then
+    performComplexValidation($customer, $policy);
+    logDecision("Complex Validation", "COMPLETED", "All checks passed");
+end
+
+// ============================================================
+// UNIFICATION OPERATOR
+// ============================================================
+
+rule "Match Customer and Policy Holder"
+when
+    $customer := Customer(customerId == "C12345")
+    $policy : Policy(holder := $customer, active == true)
+then
+    logger.info("Found active policy for unified customer");
+    processPolicy($policy);
+end
+
+// ============================================================
+// OR IN PATTERNS
+// ============================================================
+
+rule "Youth or Student Discount"
+when
+    $customer : Customer()
+    (
+        Customer(this == $customer, age < 25) or
+        Customer(this == $customer, studentStatus == true)
+    )
+    $policy : Policy(customer == $customer, type == "AUTO")
+then
+    applyYouthDiscount($policy, 0.15);
+    logDecision("Youth Discount", "APPLIED", "Customer qualifies");
+end
+
+// ============================================================
+// COMPLEX AND/OR COMBINATIONS
+// ============================================================
+
+rule "Premium Customer Benefits"
+when
+    or
+        and
+            $customer : Customer(age >= 50, riskScore < 30)
+            $policy : Policy(customer == $customer, yearsActive >= 10)
+        and
+            $customer : Customer(status == "VIP")
+            $policy : Policy(customer == $customer, totalPremium > 5000)
+then
+    applyPremiumBenefits($customer, $policy);
+    modify($policy) { 
+        setPremiumCustomer(true),
+        setDiscountRate(0.25)
+    };
+end
+
+// ============================================================
+// RULE INHERITANCE
+// ============================================================
+
+rule "Base Fraud Detection"
+when
+    $claim : Claim($amount : amount, $amount > 5000)
+    $customer : Customer(customerId == $claim.customerId)
+then
+    logger.info("Fraud check for claim: " + $claim.getClaimId());
+    performBasicFraudChecks($claim);
+end
+
+rule "Enhanced Fraud Detection" extends "Base Fraud Detection"
+when
+    $claim : Claim(suspicious == true)
+then
+    performEnhancedFraudChecks($claim, $customer);
+    notifier.sendFraudAlert($claim);
+end
+
+// ============================================================
+// NULL-SAFE NAVIGATION
+// ============================================================
+
+rule "Safe Property Access"
+when
+    $customer : Customer(
+        address?.city == "Boston",
+        primaryPolicy?.status == "ACTIVE"
+    )
+then
+    logger.info("Customer with Boston address and active primary policy");
+end
+
+// ============================================================
+// NESTED CONSTRAINTS
+// ============================================================
+
+rule "Deep Property Validation"
+when
+    $customer : Customer(
+        address.location.coordinates.(latitude > 42.0, longitude < -71.0),
+        policies.(size > 0, [0].status == "ACTIVE"),
+        contact.phone.(length == 10, startsWith("617"))
+    )
+then
+    logger.info("Customer meets all nested criteria");
+end
+
+// ============================================================
+// ANNOTATIONS ON RULES
+// ============================================================
+
+@Author(name = "Risk Team", email = "risk@example.com")
+@Version(major = 2, minor = 1)
+@ReviewDate("2024-06-01")
+rule "Annotated Rule Example"
+when
+    $customer : Customer()
+then
+    processCustomer($customer);
+end
+
+// ============================================================
+// LOCAL VARIABLE SCOPING IN RHS
+// ============================================================
+
+rule "Complex RHS with Local Variables"
+when
+    $customer : Customer()
+    $policies : List() from collect(Policy(customer == $customer))
+then
+    // Local variables in RHS - test @local.definition.var and scoping
+    int activeCount = 0;
+    double totalPremium = 0.0;
+    
+    for (Object obj : $policies) {
+        Policy policy = (Policy) obj;
+        if (policy.isActive()) {
+            activeCount++;
+            totalPremium += policy.getPremium();
+        }
+    }
+    
+    // Reference local variables
+    double avgPremium = activeCount > 0 ? totalPremium / activeCount : 0.0;
+    
+    logger.info("Customer " + $customer.getName() + 
+                " has " + activeCount + " active policies" +
+                " with average premium: $" + avgPremium);
+    
+    // Nested blocks
+    if (activeCount > 5) {
+        String message = "High policy count for " + $customer.getName();
+        logger.warn(message);
+        
+        // Variable shadowing test
+        for (int i = 0; i < activeCount; i++) {
+            String policyInfo = "Policy #" + i;
+            logger.debug(policyInfo);
+        }
+    }
+end
+
+// ============================================================
+// TIME INTERVALS
+// ============================================================
+
+rule "Time-based Processing"
+when
+    $event : Event(
+        this after[1d2h30m] $startEvent,
+        duration == 5h30m
+    )
+then
+    logger.info("Event occurred within time window");
+end

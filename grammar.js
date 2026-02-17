@@ -23,6 +23,7 @@ export default grammar({
     [$.lhs_unary],
     [$.lhs_pattern_bind],
     [$.annotation],
+    [$.attributes],
     [$.attribute, $.parenthesized_expression],
     [$.lhs_expression, $.lhs_unary],
     [$.nested_constraint, $.primary_expression, $.qualified_name],
@@ -403,10 +404,16 @@ export default grammar({
     constraints: $ => commaSep1($.constraint),
 
     constraint: $ => choice(
+      $.constraint_binding,
+      $.constraint_unification,
       $.nested_constraint,
       $.expression
     ),
 
+    constraint_binding: $ => seq($.label, $.identifier),
+
+    constraint_unification: $ => seq($.unif, $.identifier),
+    
     // address.city == "Boston"
     nested_constraint: $ => seq(
       repeat(seq($.identifier, choice(".", "?.", "#"))),
@@ -436,19 +443,22 @@ export default grammar({
       $.lhs_and_def,
       choice(",", ";"),
       choice(
-        // Full init/action/reverse/result syntax
         seq(
-          "init", "(", repeat(/[^)]/), ")", optional(","),
-          "action", "(", repeat(/[^)]/), ")", optional(","),
-          optional(seq("reverse", "(", repeat(/[^)]/), ")", optional(","))),
-          "result", "(", repeat1(/[^)]/), ")"
+          "init", "(", optional($.block_statements), ")", optional(","),
+          "action", "(", optional($.block_statements), ")", optional(","),
+          optional(seq("reverse", "(", optional($.block_statements), ")", optional(","))),
+          "result", "(", $.expression, ")"
         ),
-        // Just accumulate function
         $.accumulate_function
       ),
       ")",
       optional(";")
     ),
+
+    block_statements: $ => repeat1(choice(
+      $.variable_declaration,
+      $.expression_statement
+    )),
 
     // from collect(pattern)
     from_collect: $ => seq(
@@ -470,7 +480,14 @@ export default grammar({
       $.identifier
     ),
 
-    pattern_filter: $ => $.identifier,
+    pattern_filter: $ => seq(
+      "window",
+      ":",
+      $.identifier,
+      "(",
+      commaSep($.expression),
+      ")"
+    ),
 
     // ============================================================
     // NAMED CONSEQUENCES
@@ -523,9 +540,69 @@ export default grammar({
     // The RHS body is essentially arbitrary Java code
     consequence_body: $ => repeat1(choice(
       $.block,
+      $.variable_declaration,
+      $.drools_insert,
+      $.drools_insertLogical,
+      $.drools_update,
+      $.drools_modify,
+      $.drools_delete,
+      $.if_statement,
+      $.for_statement,
+      $.while_statement,
+      $.return_statement,
       $.expression_statement,
-      "/[^[\]then]+/"  // Any text that isn't a named consequence marker
     )),
+
+    // Drools-specific RHS actions
+    
+    drools_insert: $ => seq(
+      "insert",
+      "(",
+      $.expression,
+      ")",
+      optional(";")
+    ),
+
+    drools_insertLogical: $ => seq(
+      "insertLogical",
+      "(",
+      $.expression,
+      ")",
+      optional(";")
+    ),
+
+    drools_update: $ => seq(
+      "update",
+      "(",
+      $.expression,
+      optional(seq(",", $.expression)),
+      optional(seq(",", $.expression)),
+      ")",
+      optional(";")
+    ),
+
+    drools_modify: $ => seq(
+      "modify",
+      "(",
+      $.expression,
+      ")",
+      $.modify_block,
+      optional(";")
+    ),
+
+    modify_block: $ => seq(
+      "{",
+      optional(commaSep1($.method_call)),
+      "}"
+    ),
+
+    drools_delete: $ => seq(
+      choice("delete", "retract"),
+      "(",
+      $.expression,
+      ")",
+      optional(";")
+    ),
 
     named_consequence: $ => seq(
       "then",
@@ -541,7 +618,8 @@ export default grammar({
 
     attributes: $ => seq(
       optional(seq("attributes", optional(":"))),
-      commaSep1($.attribute)
+      $.attribute,
+      repeat(seq(optional(","), $.attribute))
     ),
 
     attribute: $ => choice(
@@ -612,6 +690,7 @@ export default grammar({
       $.method_call,
       $.field_access,
       $.array_access,
+      $.array_literal,
       $.object_creation,
       "this",
       "super"
@@ -637,6 +716,32 @@ export default grammar({
         "soundslike",
         "str"
       ), $.expression)),
+      // Temporal operators with optional time range
+      prec.left(8, seq(
+        $.expression,
+        choice(
+          "after",
+          "before",
+          "coincides",
+          "during",
+          "includes",
+          "finishes",
+          "finishedby",
+          "meets",
+          "metby",
+          "overlaps",
+          "overlappedby",
+          "starts",
+          "startedby"
+        ),
+        optional(seq(
+          "[",
+          $.expression,
+          optional(seq(",", $.expression)),
+          "]"
+        )),
+        $.expression
+      )),
       // Equality
       prec.left(7, seq($.expression, choice("==", "!="), $.expression)),
       // Bitwise AND
@@ -679,8 +784,10 @@ export default grammar({
     )),
 
     method_call: $ => prec(13, seq(
-      field("object", $.expression),
-      ".",
+      optional(seq(
+        field("object", $.expression),
+        ".",
+      )),
       field("method", $.identifier),
       "(",
       commaSep($.expression),
@@ -699,6 +806,12 @@ export default grammar({
       $.expression,
       "]"
     )),
+
+    array_literal: $ => seq(
+      "[",
+      commaSep($.expression),
+      "]"
+    ),
 
     object_creation: $ => seq(
       "new",
@@ -746,7 +859,7 @@ export default grammar({
       $.expression,
       ")",
       choice($.block, $.expression_statement),
-      optional(seq("else", choice($.block, $.expression_statement)))
+      optional(seq("else", choice($.block, $.expression_statement, $.if_statement)))
     ),
 
     for_statement: $ => seq(
@@ -848,7 +961,7 @@ export default grammar({
 
     unif: $ => seq($.identifier, ":="),
 
-    chunk: $ => /.+/,  // Generic chunk of text (for RHS and some other places) - must have at least 1 char
+    chunk: $ => /[^)]+/,
 
     // ============================================================
     // LITERALS
@@ -884,7 +997,7 @@ export default grammar({
     // Time intervals: 1d2h30m45s
     time_interval: $ => /\d+[dhms]+(\d+[dhms]+)*/,
 
-    identifier: _ => /[a-zA-Z_][a-zA-Z0-9_]*/,
+    identifier: _ => /[$a-zA-Z_][$a-zA-Z0-9_]*/,
 
     comment: _ => token(choice(
       seq("//", /.*/),

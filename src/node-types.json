@@ -65,6 +65,21 @@
     }
   },
   {
+    "type": "array_literal",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "assignment_expression",
     "named": true,
     "fields": {},
@@ -259,6 +274,25 @@
     }
   },
   {
+    "type": "block_statements",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "expression_statement",
+          "named": true
+        },
+        {
+          "type": "variable_declaration",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "boolean_literal",
     "named": true,
     "fields": {}
@@ -330,14 +364,54 @@
     "fields": {},
     "children": {
       "multiple": true,
-      "required": false,
+      "required": true,
       "types": [
         {
           "type": "block",
           "named": true
         },
         {
+          "type": "drools_delete",
+          "named": true
+        },
+        {
+          "type": "drools_insert",
+          "named": true
+        },
+        {
+          "type": "drools_insertLogical",
+          "named": true
+        },
+        {
+          "type": "drools_modify",
+          "named": true
+        },
+        {
+          "type": "drools_update",
+          "named": true
+        },
+        {
           "type": "expression_statement",
+          "named": true
+        },
+        {
+          "type": "for_statement",
+          "named": true
+        },
+        {
+          "type": "if_statement",
+          "named": true
+        },
+        {
+          "type": "return_statement",
+          "named": true
+        },
+        {
+          "type": "variable_declaration",
+          "named": true
+        },
+        {
+          "type": "while_statement",
           "named": true
         }
       ]
@@ -371,11 +445,57 @@
       "required": true,
       "types": [
         {
+          "type": "constraint_binding",
+          "named": true
+        },
+        {
+          "type": "constraint_unification",
+          "named": true
+        },
+        {
           "type": "expression",
           "named": true
         },
         {
           "type": "nested_constraint",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "constraint_binding",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "label",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "constraint_unification",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "unif",
           "named": true
         }
       ]
@@ -418,6 +538,85 @@
         },
         {
           "type": "window_declaration",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "drools_delete",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "drools_insert",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "drools_insertLogical",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "drools_modify",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "expression",
+          "named": true
+        },
+        {
+          "type": "modify_block",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "drools_update",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "expression",
           "named": true
         }
       ]
@@ -670,6 +869,14 @@
           "named": true
         },
         {
+          "type": "block_statements",
+          "named": true
+        },
+        {
+          "type": "expression",
+          "named": true
+        },
+        {
           "type": "lhs_and_def",
           "named": true
         }
@@ -804,6 +1011,10 @@
         },
         {
           "type": "expression_statement",
+          "named": true
+        },
+        {
+          "type": "if_statement",
           "named": true
         }
       ]
@@ -1230,7 +1441,7 @@
       },
       "object": {
         "multiple": false,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "expression",
@@ -1245,6 +1456,21 @@
       "types": [
         {
           "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "modify_block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "method_call",
           "named": true
         }
       ]
@@ -1396,9 +1622,13 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": true,
       "types": [
+        {
+          "type": "expression",
+          "named": true
+        },
         {
           "type": "identifier",
           "named": true
@@ -1462,6 +1692,10 @@
       "types": [
         {
           "type": "array_access",
+          "named": true
+        },
+        {
+          "type": "array_literal",
           "named": true
         },
         {
@@ -2006,10 +2240,6 @@
     "named": false
   },
   {
-    "type": "/[^[]then]+/",
-    "named": false
-  },
-  {
     "type": ":",
     "named": false
   },
@@ -2114,6 +2344,10 @@
     "named": false
   },
   {
+    "type": "after",
+    "named": false
+  },
+  {
     "type": "and",
     "named": false
   },
@@ -2123,6 +2357,10 @@
   },
   {
     "type": "auto-focus",
+    "named": false
+  },
+  {
+    "type": "before",
     "named": false
   },
   {
@@ -2150,6 +2388,10 @@
     "named": true
   },
   {
+    "type": "coincides",
+    "named": false
+  },
+  {
     "type": "collect",
     "named": false
   },
@@ -2175,6 +2417,10 @@
     "named": false
   },
   {
+    "type": "delete",
+    "named": false
+  },
+  {
     "type": "dialect",
     "named": false
   },
@@ -2192,6 +2438,10 @@
   },
   {
     "type": "duration",
+    "named": false
+  },
+  {
+    "type": "during",
     "named": false
   },
   {
@@ -2235,6 +2485,14 @@
     "named": false
   },
   {
+    "type": "finishedby",
+    "named": false
+  },
+  {
+    "type": "finishes",
+    "named": false
+  },
+  {
     "type": "float",
     "named": false
   },
@@ -2275,7 +2533,19 @@
     "named": false
   },
   {
+    "type": "includes",
+    "named": false
+  },
+  {
     "type": "init",
+    "named": false
+  },
+  {
+    "type": "insert",
+    "named": false
+  },
+  {
+    "type": "insertLogical",
     "named": false
   },
   {
@@ -2299,7 +2569,19 @@
     "named": false
   },
   {
+    "type": "meets",
+    "named": false
+  },
+  {
     "type": "memberOf",
+    "named": false
+  },
+  {
+    "type": "metby",
+    "named": false
+  },
+  {
+    "type": "modify",
     "named": false
   },
   {
@@ -2327,6 +2609,14 @@
     "named": false
   },
   {
+    "type": "overlappedby",
+    "named": false
+  },
+  {
+    "type": "overlaps",
+    "named": false
+  },
+  {
     "type": "package",
     "named": false
   },
@@ -2340,6 +2630,10 @@
   },
   {
     "type": "result",
+    "named": false
+  },
+  {
+    "type": "retract",
     "named": false
   },
   {
@@ -2368,6 +2662,14 @@
   },
   {
     "type": "soundslike",
+    "named": false
+  },
+  {
+    "type": "startedby",
+    "named": false
+  },
+  {
+    "type": "starts",
     "named": false
   },
   {
@@ -2412,6 +2714,10 @@
   },
   {
     "type": "unit",
+    "named": false
+  },
+  {
+    "type": "update",
     "named": false
   },
   {
