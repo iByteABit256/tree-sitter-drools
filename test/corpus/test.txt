@@ -1,0 +1,979 @@
+================================================================================
+Package declaration
+================================================================================
+
+package com.example.rules
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (package_decl
+    (qualified_name
+      (identifier)
+      (identifier)
+      (identifier))))
+
+================================================================================
+Import statements
+================================================================================
+
+package com.example.rules
+
+import com.example.model.Customer
+import static com.example.utils.Constants.*
+import function com.example.utils.Helper.calculate
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (package_decl
+    (qualified_name
+      (identifier)
+      (identifier)
+      (identifier)))
+  (import_decl
+    (import_path
+      (identifier)
+      (identifier)
+      (identifier)
+      (identifier)))
+  (import_decl
+    (import_path
+      (identifier)
+      (identifier)
+      (identifier)
+      (identifier)))
+  (import_decl
+    (import_path
+      (identifier)
+      (identifier)
+      (identifier)
+      (identifier)
+      (identifier))))
+
+================================================================================
+Global declarations
+================================================================================
+
+package com.example
+
+global java.util.List items
+global org.slf4j.Logger logger
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (package_decl
+    (qualified_name
+      (identifier)
+      (identifier)))
+  (global_decl
+    (type
+      (qualified_type
+        (qualified_name
+          (identifier)
+          (identifier)
+          (identifier))))
+    (identifier))
+  (global_decl
+    (type
+      (qualified_type
+        (qualified_name
+          (identifier)
+          (identifier)
+          (identifier))))
+    (identifier)))
+
+================================================================================
+Simple rule
+================================================================================
+
+package com.example
+
+rule "Adult Check"
+when
+    $p : Person(age >= 18)
+then
+    System.out.println("Adult");
+end
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (package_decl
+    (qualified_name
+      (identifier)
+      (identifier)))
+  (rule_decl
+    name: (string_literal)
+    (lhs
+      (lhs_expression
+        (lhs_unary
+          (lhs_pattern_bind
+            (label
+              (identifier))
+            (lhs_pattern
+              type: (qualified_name
+                (identifier))
+              (constraints
+                (constraint
+                  (expression
+                    (binary_expression
+                      (expression
+                        (primary_expression
+                          (identifier)))
+                      (expression
+                        (primary_expression
+                          (literal
+                            (number)))))))))))))
+    (rhs
+      (consequence_body
+        (expression_statement
+          (expression
+            (primary_expression
+              (method_call
+                object: (expression
+                  (primary_expression
+                    (qualified_name
+                      (identifier)
+                      (identifier))))
+                method: (identifier)
+                (expression
+                  (primary_expression
+                    (literal
+                      (string_literal))))))))))))
+
+================================================================================
+Rule with attributes
+================================================================================
+
+rule "Priority Rule"
+    salience 100
+    no-loop true
+    activation-group "group1"
+when
+    $x : Data()
+then
+    process($x);
+end
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (rule_decl
+    name: (string_literal `\"Priority Rule\"`)
+    (attributes
+      (attribute
+        value: (number `100`))
+      (attribute
+        value: (boolean_literal))
+      (attribute
+        value: (string_literal `\"group1\"`)))
+    (lhs
+      (lhs_expression
+        (lhs_unary
+          (lhs_pattern_bind
+            (label
+              (identifier))
+            (lhs_pattern
+              type: (qualified_name
+                (identifier)))))))
+    (rhs
+      (consequence_body
+        (expression_statement
+          (expression
+            (primary_expression
+              (method_call
+                method: (identifier)
+                (expression
+                  (primary_expression
+                    (identifier)))))))))))
+
+================================================================================
+Pattern with multiple constraints
+================================================================================
+
+rule "Complex Pattern"
+when
+    Person(
+        age > 18,
+        name == "John",
+        address.city == "Boston"
+    )
+then
+    System.out.println("Match");
+end
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (rule_decl
+    name: (string_literal)
+    (lhs
+      (lhs_expression
+        (lhs_unary
+          (lhs_pattern_bind
+            (lhs_pattern
+              type: (qualified_name
+                (identifier))
+              (constraints
+                (constraint
+                  (expression
+                    (binary_expression
+                      (expression
+                        (primary_expression
+                          (identifier)))
+                      (expression
+                        (primary_expression
+                          (literal
+                            (number)))))))
+                (constraint
+                  (expression
+                    (binary_expression
+                      (expression
+                        (primary_expression
+                          (identifier)))
+                      (expression
+                        (primary_expression
+                          (literal
+                            (string_literal)))))))
+                (constraint
+                  (expression
+                    (binary_expression
+                      (expression
+                        (primary_expression
+                          (qualified_name
+                            (identifier)
+                            (identifier))))
+                      (expression
+                        (primary_expression
+                          (literal
+                            (string_literal)))))))))))))
+    (rhs
+      (consequence_body
+        (expression_statement
+          (expression
+            (primary_expression
+              (method_call
+                object: (expression
+                  (primary_expression
+                    (qualified_name
+                      (identifier)
+                      (identifier))))
+                method: (identifier)
+                (expression
+                  (primary_expression
+                    (literal
+                      (string_literal))))))))))))
+
+================================================================================
+Constraint with inline binding
+================================================================================
+
+rule "Inline Binding"
+when
+    Customer($score : riskScore, $score > 75.0)
+then
+    alert($score);
+end
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (rule_decl
+    name: (string_literal)
+    (lhs
+      (lhs_expression
+        (lhs_unary
+          (lhs_pattern_bind
+            (lhs_pattern
+              type: (qualified_name
+                (identifier))
+              (constraints
+                (constraint
+                  (constraint_binding
+                    (label
+                      (identifier))
+                    (identifier)))
+                (constraint
+                  (expression
+                    (binary_expression
+                      (expression
+                        (primary_expression
+                          (identifier)))
+                      (expression
+                        (primary_expression
+                          (literal
+                            (number)))))))))))))
+    (rhs
+      (consequence_body
+        (expression_statement
+          (expression
+            (primary_expression
+              (method_call
+                method: (identifier)
+                (expression
+                  (primary_expression
+                    (identifier)))))))))))
+
+================================================================================
+EXISTS operator
+================================================================================
+
+rule "Check Existence"
+when
+    $customer : Customer()
+    exists Order(customer == $customer)
+then
+    notify($customer);
+end
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (rule_decl
+    name: (string_literal)
+    (lhs
+      (lhs_expression
+        (lhs_and
+          (lhs_unary
+            (lhs_pattern_bind
+              (label
+                (identifier))
+              (lhs_pattern
+                type: (qualified_name
+                  (identifier)))))
+          (lhs_unary
+            (lhs_exists
+              (lhs_pattern
+                type: (qualified_name
+                  (identifier))
+                (constraints
+                  (constraint
+                    (expression
+                      (binary_expression
+                        (expression
+                          (primary_expression
+                            (identifier)))
+                        (expression
+                          (primary_expression
+                            (identifier)))))))))))))
+    (rhs
+      (consequence_body
+        (expression_statement
+          (expression
+            (primary_expression
+              (method_call
+                method: (identifier)
+                (expression
+                  (primary_expression
+                    (identifier)))))))))))
+
+================================================================================
+NOT operator
+================================================================================
+
+rule "No Orders"
+when
+    $c : Customer()
+    not Order(customer == $c)
+then
+    sendWelcome($c);
+end
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (rule_decl
+    name: (string_literal)
+    (lhs
+      (lhs_expression
+        (lhs_and
+          (lhs_unary
+            (lhs_pattern_bind
+              (label
+                (identifier))
+              (lhs_pattern
+                type: (qualified_name
+                  (identifier)))))
+          (lhs_unary
+            (lhs_not
+              (lhs_pattern
+                type: (qualified_name
+                  (identifier))
+                (constraints
+                  (constraint
+                    (expression
+                      (binary_expression
+                        (expression
+                          (primary_expression
+                            (identifier)))
+                        (expression
+                          (primary_expression
+                            (identifier)))))))))))))
+    (rhs
+      (consequence_body
+        (expression_statement
+          (expression
+            (primary_expression
+              (method_call
+                method: (identifier)
+                (expression
+                  (primary_expression
+                    (identifier)))))))))))
+
+================================================================================
+ACCUMULATE with functions
+================================================================================
+
+rule "Total Premium"
+when
+    $customer : Customer()
+    accumulate(
+        $policy : Policy(customer == $customer);
+        $total : sum($policy.getPremium())
+    )
+then
+    setTotal($total);
+end
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (rule_decl
+    name: (string_literal)
+    (lhs
+      (lhs_expression
+        (lhs_and
+          (lhs_unary
+            (lhs_pattern_bind
+              (label
+                (identifier))
+              (lhs_pattern
+                type: (qualified_name
+                  (identifier)))))
+          (lhs_unary
+            (lhs_accumulate
+              (lhs_and_def
+                (lhs_unary
+                  (lhs_pattern_bind
+                    (label
+                      (identifier))
+                    (lhs_pattern
+                      type: (qualified_name
+                        (identifier))
+                      (constraints
+                        (constraint
+                          (expression
+                            (binary_expression
+                              (expression
+                                (primary_expression
+                                  (identifier)))
+                              (expression
+                                (primary_expression
+                                  (identifier)))))))))))
+              (accumulate_function
+                (label
+                  (identifier))
+                (identifier)
+                (expression
+                  (primary_expression
+                    (method_call
+                      object: (expression
+                        (primary_expression
+                          (identifier)))
+                      method: (identifier))))))))))
+    (rhs
+      (consequence_body
+        (expression_statement
+          (expression
+            (primary_expression
+              (method_call
+                method: (identifier)
+                (expression
+                  (primary_expression
+                    (identifier)))))))))))
+
+================================================================================
+ACCUMULATE with init/action/result
+================================================================================
+
+rule "Custom Accumulate"
+when
+    $customer : Customer()
+    $avg : Number() from accumulate(
+        $order : Order(customer == $customer);
+        init( double total = 0; int count = 0; ),
+        action( total += $order.getAmount(); count++; ),
+        result( count > 0 ? total / count : 0 )
+    )
+then
+    process($avg);
+end
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (rule_decl
+    name: (string_literal)
+    (lhs
+      (lhs_expression
+        (lhs_and
+          (lhs_unary
+            (lhs_pattern_bind
+              (label
+                (identifier))
+              (lhs_pattern
+                type: (qualified_name
+                  (identifier)))))
+          (lhs_unary
+            (lhs_pattern_bind
+              (label
+                (identifier))
+              (lhs_pattern
+                type: (qualified_name
+                  (identifier))
+                (pattern_source
+                  (from_accumulate
+                    (lhs_and_def
+                      (lhs_unary
+                        (lhs_pattern_bind
+                          (label
+                            (identifier))
+                          (lhs_pattern
+                            type: (qualified_name
+                              (identifier))
+                            (constraints
+                              (constraint
+                                (expression
+                                  (binary_expression
+                                    (expression
+                                      (primary_expression
+                                        (identifier)))
+                                    (expression
+                                      (primary_expression
+                                        (identifier)))))))))))
+                    (block_statements
+                      (variable_declaration
+                        (type
+                          (primitive_type))
+                        (identifier)
+                        (expression
+                          (primary_expression
+                            (literal
+                              (number)))))
+                      (variable_declaration
+                        (type
+                          (primitive_type))
+                        (identifier)
+                        (expression
+                          (primary_expression
+                            (literal
+                              (number))))))
+                    (block_statements
+                      (expression_statement
+                        (expression
+                          (assignment_expression
+                            (expression
+                              (primary_expression
+                                (identifier)))
+                            (expression
+                              (primary_expression
+                                (method_call
+                                  object: (expression
+                                    (primary_expression
+                                      (identifier)))
+                                  method: (identifier)))))))
+                      (expression_statement
+                        (expression
+                          (unary_expression
+                            (expression
+                              (primary_expression
+                                (identifier)))))))
+                    (expression
+                      (ternary_expression
+                        (expression
+                          (binary_expression
+                            (expression
+                              (primary_expression
+                                (identifier)))
+                            (expression
+                              (primary_expression
+                                (literal
+                                  (number))))))
+                        (expression
+                          (binary_expression
+                            (expression
+                              (primary_expression
+                                (identifier)))
+                            (expression
+                              (primary_expression
+                                (identifier)))))
+                        (expression
+                          (primary_expression
+                            (literal
+                              (number)))))))))))))
+    (rhs
+      (consequence_body
+        (expression_statement
+          (expression
+            (primary_expression
+              (method_call
+                method: (identifier)
+                (expression
+                  (primary_expression
+                    (identifier)))))))))))
+
+================================================================================
+Drools modify action
+================================================================================
+
+rule "Update Customer"
+when
+    $c : Customer(status == "NEW")
+then
+    modify($c) {
+        setStatus("ACTIVE"),
+        setDate(new Date())
+    };
+end
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (rule_decl
+    name: (string_literal)
+    (lhs
+      (lhs_expression
+        (lhs_unary
+          (lhs_pattern_bind
+            (label
+              (identifier))
+            (lhs_pattern
+              type: (qualified_name
+                (identifier))
+              (constraints
+                (constraint
+                  (expression
+                    (binary_expression
+                      (expression
+                        (primary_expression
+                          (identifier)))
+                      (expression
+                        (primary_expression
+                          (literal
+                            (string_literal)))))))))))))
+    (rhs
+      (consequence_body
+        (drools_modify
+          (expression
+            (primary_expression
+              (identifier)))
+          (modify_block
+            (method_call
+              method: (identifier)
+              (expression
+                (primary_expression
+                  (literal
+                    (string_literal)))))
+            (method_call
+              method: (identifier)
+              (expression
+                (primary_expression
+                  (object_creation
+                    (type
+                      (qualified_type
+                        (qualified_name
+                          (identifier))))))))))))))
+
+================================================================================
+Named consequences
+================================================================================
+
+rule "Tiered Processing"
+when
+    $claim : Claim($amount : amount)
+        if($amount < 1000) do[small]
+        else do[large]
+then
+    log("Processing");
+then[small]
+    autoApprove($claim);
+then[large]
+    escalate($claim);
+end
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (rule_decl
+    name: (string_literal)
+    (lhs
+      (lhs_expression
+        (lhs_unary
+          (lhs_pattern_bind
+            (label
+              (identifier))
+            (lhs_pattern
+              type: (qualified_name
+                (identifier))
+              (constraints
+                (constraint
+                  (constraint_binding
+                    (label
+                      (identifier))
+                    (identifier))))
+              (consequence_invocation
+                (conditional_branch
+                  (expression
+                    (binary_expression
+                      (expression
+                        (primary_expression
+                          (identifier)))
+                      (expression
+                        (primary_expression
+                          (literal
+                            (number))))))
+                  (named_consequence_invocation
+                    (identifier))
+                  (named_consequence_invocation
+                    (identifier)))))))))
+    (rhs
+      (consequence_body
+        (expression_statement
+          (expression
+            (primary_expression
+              (method_call
+                method: (identifier)
+                (expression
+                  (primary_expression
+                    (literal
+                      (string_literal)))))))))
+      (named_consequence
+        (identifier)
+        (consequence_body
+          (expression_statement
+            (expression
+              (primary_expression
+                (method_call
+                  method: (identifier)
+                  (expression
+                    (primary_expression
+                      (identifier)))))))))
+      (named_consequence
+        (identifier)
+        (consequence_body
+          (expression_statement
+            (expression
+              (primary_expression
+                (method_call
+                  method: (identifier)
+                  (expression
+                    (primary_expression
+                      (identifier))))))))))))
+
+================================================================================
+Query declaration
+================================================================================
+
+query "findAdults" (int minAge)
+    $p : Person(age >= minAge)
+end
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (query_decl
+    name: (string_literal)
+    (parameters
+      (parameter
+        (type
+          (primitive_type))
+        (identifier)))
+    (lhs_expression
+      (lhs_unary
+        (lhs_pattern_bind
+          (label
+            (identifier))
+          (lhs_pattern
+            type: (qualified_name
+              (identifier))
+            (constraints
+              (constraint
+                (expression
+                  (binary_expression
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (expression
+                      (primary_expression
+                        (identifier)))))))))))))
+
+================================================================================
+Type declaration
+================================================================================
+
+declare Person
+    name : String
+    age : int = 0
+end
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (declare_decl
+    (type_declaration
+      name: (qualified_name
+        (identifier))
+      (field_decl
+        name: (identifier)
+        (type
+          (qualified_type
+            (qualified_name
+              (identifier)))))
+      (field_decl
+        name: (identifier)
+        (type
+          (primitive_type))
+        (expression
+          (primary_expression
+            (literal
+              (number))))))))
+
+================================================================================
+Enum declaration
+================================================================================
+
+declare enum Status
+    NEW, ACTIVE, CLOSED;
+end
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (declare_decl
+    (enum_declaration
+      (qualified_name
+        (identifier))
+      (enumerative
+        (identifier))
+      (enumerative
+        (identifier))
+      (enumerative
+        (identifier)))))
+
+================================================================================
+Annotations
+================================================================================
+
+rule "Annotated Rule"
+    @Author(name = "Team", email = "team@example.com")
+    @Version(major = 1, minor = 0)
+when
+    $x : Data()
+then
+    process($x);
+end
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (rule_decl
+    name: (string_literal)
+    (annotation
+      (qualified_name
+        (identifier))
+      (annotation_args
+        (annotation_element_value_pairs
+          (annotation_element_value_pair
+            key: (identifier)
+            value: (annotation_value
+              (expression
+                (primary_expression
+                  (literal
+                    (string_literal))))))
+          (annotation_element_value_pair
+            key: (identifier)
+            value: (annotation_value
+              (expression
+                (primary_expression
+                  (literal
+                    (string_literal)))))))))
+    (annotation
+      (qualified_name
+        (identifier))
+      (annotation_args
+        (annotation_element_value_pairs
+          (annotation_element_value_pair
+            key: (identifier)
+            value: (annotation_value
+              (expression
+                (primary_expression
+                  (literal
+                    (number))))))
+          (annotation_element_value_pair
+            key: (identifier)
+            value: (annotation_value
+              (expression
+                (primary_expression
+                  (literal
+                    (number)))))))))
+    (lhs
+      (lhs_expression
+        (lhs_unary
+          (lhs_pattern_bind
+            (label
+              (identifier))
+            (lhs_pattern
+              type: (qualified_name
+                (identifier)))))))
+    (rhs
+      (consequence_body
+        (expression_statement
+          (expression
+            (primary_expression
+              (method_call
+                method: (identifier)
+                (expression
+                  (primary_expression
+                    (identifier)))))))))))
+
+================================================================================
+Function declaration
+================================================================================
+
+function double calculate(int x, int y) {
+    return x * y * 2.5;
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_decl
+    (type
+      (primitive_type))
+    (identifier)
+    (formal_parameters
+      (type
+        (primitive_type))
+      (identifier)
+      (type
+        (primitive_type))
+      (identifier))
+    (block
+      (return_statement
+        (expression
+          (binary_expression
+            (expression
+              (binary_expression
+                (expression
+                  (primary_expression
+                    (identifier)))
+                (expression
+                  (primary_expression
+                    (identifier)))))
+            (expression
+              (primary_expression
+                (literal
+                  (number))))))))))
+

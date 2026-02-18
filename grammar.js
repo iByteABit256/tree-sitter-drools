@@ -25,7 +25,6 @@ export default grammar({
     [$.annotation],
     [$.attributes],
     [$.attribute],
-    [$.attribute, $.parenthesized_expression],
     [$.lhs_expression, $.lhs_unary],
     [$.nested_constraint, $.primary_expression, $.qualified_name],
     [$.lhs_expression, $.lhs_and_def],
@@ -628,22 +627,23 @@ export default grammar({
     attribute: $ => choice(
       // Expression attributes: salience, enabled
       seq(
-        field("name", choice("salience", "enabled")),
+        field("name", "salience"),
         field("value", choice(
-          seq("(", $.expression, ")"),
-          $.expression
+          seq("(", $.number, ")"),
+          $.number
         ))
       ),
       // Boolean attributes: no-loop, auto-focus, etc.
       seq(
         field("name", choice(
+          "enabled",
           "no-loop",
           "auto-focus",
           "lock-on-active",
           "refract",
           "direct"
         )),
-        optional(field("value", choice("true", "false")))
+        optional(field("value", $.boolean_literal))
       ),
       // String attributes
       seq(

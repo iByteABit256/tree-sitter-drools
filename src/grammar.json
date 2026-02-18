@@ -3000,17 +3000,8 @@
               "type": "FIELD",
               "name": "name",
               "content": {
-                "type": "CHOICE",
-                "members": [
-                  {
-                    "type": "STRING",
-                    "value": "salience"
-                  },
-                  {
-                    "type": "STRING",
-                    "value": "enabled"
-                  }
-                ]
+                "type": "STRING",
+                "value": "salience"
               }
             },
             {
@@ -3028,7 +3019,7 @@
                       },
                       {
                         "type": "SYMBOL",
-                        "name": "expression"
+                        "name": "number"
                       },
                       {
                         "type": "STRING",
@@ -3038,7 +3029,7 @@
                   },
                   {
                     "type": "SYMBOL",
-                    "name": "expression"
+                    "name": "number"
                   }
                 ]
               }
@@ -3054,6 +3045,10 @@
               "content": {
                 "type": "CHOICE",
                 "members": [
+                  {
+                    "type": "STRING",
+                    "value": "enabled"
+                  },
                   {
                     "type": "STRING",
                     "value": "no-loop"
@@ -3084,17 +3079,8 @@
                   "type": "FIELD",
                   "name": "value",
                   "content": {
-                    "type": "CHOICE",
-                    "members": [
-                      {
-                        "type": "STRING",
-                        "value": "true"
-                      },
-                      {
-                        "type": "STRING",
-                        "value": "false"
-                      }
-                    ]
+                    "type": "SYMBOL",
+                    "name": "boolean_literal"
                   }
                 },
                 {
@@ -5297,10 +5283,6 @@
     ],
     [
       "attribute"
-    ],
-    [
-      "attribute",
-      "parenthesized_expression"
     ],
     [
       "lhs_expression",

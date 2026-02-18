@@ -6,6 +6,8 @@ global java.util.List results
 
 rule "Adult"
 salience 10
+no-loop false
+dialect "java"
 when
     not Person(age < 18)
     exists Person(name == "Bob")
