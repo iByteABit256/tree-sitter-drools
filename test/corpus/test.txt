@@ -1,19 +1,4 @@
 ================================================================================
-Package declaration
-================================================================================
-
-package com.example.rules
-
---------------------------------------------------------------------------------
-
-(source_file
-  (package_decl
-    (qualified_name
-      (identifier)
-      (identifier)
-      (identifier))))
-
-================================================================================
 Import statements
 ================================================================================
 
@@ -161,14 +146,14 @@ end
 
 (source_file
   (rule_decl
-    name: (string_literal `\"Priority Rule\"`)
+    name: (string_literal)
     (attributes
       (attribute
-        value: (number `100`))
+        value: (number))
       (attribute
         value: (boolean_literal))
       (attribute
-        value: (string_literal `\"group1\"`)))
+        value: (string_literal)))
     (lhs
       (lhs_expression
         (lhs_unary
@@ -335,16 +320,17 @@ end
     name: (string_literal)
     (lhs
       (lhs_expression
-        (lhs_and
-          (lhs_unary
+        (lhs_unary
+          (lhs_pattern_bind
+            (label
+              (identifier))
+            (lhs_pattern
+              type: (qualified_name
+                (identifier))))))
+      (lhs_expression
+        (lhs_unary
+          (lhs_exists
             (lhs_pattern_bind
-              (label
-                (identifier))
-              (lhs_pattern
-                type: (qualified_name
-                  (identifier)))))
-          (lhs_unary
-            (lhs_exists
               (lhs_pattern
                 type: (qualified_name
                   (identifier))
@@ -388,16 +374,17 @@ end
     name: (string_literal)
     (lhs
       (lhs_expression
-        (lhs_and
-          (lhs_unary
+        (lhs_unary
+          (lhs_pattern_bind
+            (label
+              (identifier))
+            (lhs_pattern
+              type: (qualified_name
+                (identifier))))))
+      (lhs_expression
+        (lhs_unary
+          (lhs_not
             (lhs_pattern_bind
-              (label
-                (identifier))
-              (lhs_pattern
-                type: (qualified_name
-                  (identifier)))))
-          (lhs_unary
-            (lhs_not
               (lhs_pattern
                 type: (qualified_name
                   (identifier))
@@ -444,14 +431,14 @@ end
     name: (string_literal)
     (lhs
       (lhs_expression
-        (lhs_and
-          (lhs_unary
-            (lhs_pattern_bind
-              (label
-                (identifier))
-              (lhs_pattern
-                type: (qualified_name
-                  (identifier)))))
+        (lhs_unary
+          (lhs_pattern_bind
+            (label
+              (identifier))
+            (lhs_pattern
+              type: (qualified_name
+                (identifier))))))
+        (lhs_expression
           (lhs_unary
             (lhs_accumulate
               (lhs_and_def
@@ -482,7 +469,7 @@ end
                       object: (expression
                         (primary_expression
                           (identifier)))
-                      method: (identifier))))))))))
+                      method: (identifier)))))))))
     (rhs
       (consequence_body
         (expression_statement
@@ -518,14 +505,14 @@ end
     name: (string_literal)
     (lhs
       (lhs_expression
-        (lhs_and
-          (lhs_unary
-            (lhs_pattern_bind
-              (label
-                (identifier))
-              (lhs_pattern
-                type: (qualified_name
-                  (identifier)))))
+        (lhs_unary
+          (lhs_pattern_bind
+            (label
+              (identifier))
+            (lhs_pattern
+              type: (qualified_name
+                (identifier))))))
+      (lhs_expression
           (lhs_unary
             (lhs_pattern_bind
               (label
@@ -722,22 +709,22 @@ end
                   (constraint_binding
                     (label
                       (identifier))
-                    (identifier))))
-              (consequence_invocation
-                (conditional_branch
-                  (expression
-                    (binary_expression
-                      (expression
-                        (primary_expression
-                          (identifier)))
-                      (expression
-                        (primary_expression
-                          (literal
-                            (number))))))
-                  (named_consequence_invocation
-                    (identifier))
-                  (named_consequence_invocation
-                    (identifier)))))))))
+                    (identifier))))))
+            (consequence_invocation
+              (conditional_branch
+                (expression
+                  (binary_expression
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (expression
+                      (primary_expression
+                        (literal
+                          (number))))))
+                (named_consequence_invocation
+                  (identifier))
+                (named_consequence_invocation
+                  (identifier)))))))
     (rhs
       (consequence_body
         (expression_statement
@@ -835,10 +822,11 @@ end
         name: (identifier)
         (type
           (primitive_type))
-        (expression
-          (primary_expression
-            (literal
-              (number))))))))
+        init:
+          (expression
+            (primary_expression
+              (literal
+                (number))))))))
 
 ================================================================================
 Enum declaration
@@ -948,32 +936,32 @@ function double calculate(int x, int y) {
 
 --------------------------------------------------------------------------------
 
-(source_file
-  (function_decl
-    (type
-      (primitive_type))
-    (identifier)
-    (formal_parameters
+  (source_file
+    (function_decl
       (type
         (primitive_type))
       (identifier)
-      (type
-        (primitive_type))
-      (identifier))
-    (block
-      (return_statement
-        (expression
-          (binary_expression
-            (expression
-              (binary_expression
-                (expression
-                  (primary_expression
-                    (identifier)))
-                (expression
-                  (primary_expression
-                    (identifier)))))
-            (expression
-              (primary_expression
-                (literal
-                  (number))))))))))
+      (formal_parameters
+        (type
+          (primitive_type))
+        (identifier)
+        (type
+          (primitive_type))
+        (identifier))
+      (block
+        (return_statement
+          (expression
+            (binary_expression
+              (expression
+                (binary_expression
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (expression
+                    (primary_expression
+                      (identifier)))))
+              (expression
+                (primary_expression
+                  (literal
+                    (number))))))))))
 

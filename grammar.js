@@ -134,7 +134,7 @@ export default grammar({
     field_decl: $ => seq(
       field("name", $.identifier),
       ":",
-      field("type", $.type),
+      $.type,
       optional(seq("=", field("init", $.expression))),
       repeat($.annotation),
       optional(";")
@@ -272,10 +272,7 @@ export default grammar({
     )),
 
     lhs_and: $ => prec.left(2, seq(
-      choice(
-        seq("and", repeat1($.lhs_expression)),
-        seq($.lhs_expression, repeat1(seq("and", $.lhs_expression)))
-      )
+        $.lhs_expression, repeat1(seq("and", $.lhs_expression))
     )),
 
     lhs_unary: $ => seq(
