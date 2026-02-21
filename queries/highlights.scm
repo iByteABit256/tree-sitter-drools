@@ -1,118 +1,121 @@
-;; ============================================================
-;; KEYWORDS
-;; ============================================================
+; ============================================================
+; COMMENTS
+; ============================================================
 
-;; Top-level keywords
+(comment) @comment
+
+; ============================================================
+; TOP-LEVEL KEYWORDS
+; ============================================================
+
 [
   "package"
+  "unit"
   "import"
   "global"
   "declare"
   "rule"
   "query"
   "function"
-  "unit"
+  "end"
 ] @keyword
 
-;; Declaration keywords
-[
-  "trait"
-  "type"
-  "enum"
-  "extends"
-  "entry-point"
-  "window"
-] @keyword.type
+; ============================================================
+; RULE STRUCTURE
+; ============================================================
 
-;; Rule structure keywords
 [
   "when"
   "then"
-  "end"
-  "attributes"
 ] @keyword.control
 
-;; LHS operators
+; ============================================================
+; LHS KEYWORDS
+; ============================================================
+
 [
   "and"
   "or"
   "not"
   "exists"
-  "forall"
   "eval"
+  "forall"
   "accumulate"
   "acc"
   "groupby"
-  "collect"
   "from"
+  "collect"
   "over"
-] @keyword.operator
+  "window"
+  "entry-point"
+] @keyword
 
-;; Accumulate keywords
-[
-  "init"
-  "action"
-  "reverse"
-  "result"
-] @keyword.function
+; ============================================================
+; DROOLS RHS ACTIONS
+; ============================================================
 
-;; Named consequence keywords
 [
-  "do"
-  "break"
-  "if"
-  "else"
-] @keyword.control.conditional
-
-;; Java/control flow keywords
-[
-  "return"
-  "for"
-  "while"
-  "new"
-  "this"
-  "super"
   "insert"
   "insertLogical"
   "update"
   "modify"
   "delete"
   "retract"
+] @function.builtin
+
+; ============================================================
+; CONTROL FLOW (in RHS / function bodies)
+; ============================================================
+
+[
+  "if"
+  "else"
+  "for"
+  "while"
+  "return"
+  "do"
+  "break"
 ] @keyword.control
 
-;; Import modifiers
+; ============================================================
+; DECLARE SUB-KEYWORDS
+; ============================================================
+
 [
+  "trait"
+  "type"
+  "enum"
+  "extends"
   "static"
-] @keyword.modifier
+] @keyword
 
-;; ============================================================
-;; RULE ATTRIBUTES
-;; ============================================================
+; ============================================================
+; ATTRIBUTE NAMES
+; ============================================================
 
-(attribute
-  name: [
-    "salience"
-    "enabled"
-    "no-loop"
-    "auto-focus"
-    "lock-on-active"
-    "refract"
-    "direct"
-    "activation-group"
-    "ruleflow-group"
-    "date-effective"
-    "date-expires"
-    "dialect"
-    "calendars"
-    "timer"
-    "duration"
-  ] @attribute)
+[
+  "salience"
+  "enabled"
+  "no-loop"
+  "auto-focus"
+  "lock-on-active"
+  "refract"
+  "direct"
+  "activation-group"
+  "ruleflow-group"
+  "date-effective"
+  "date-expires"
+  "dialect"
+  "calendars"
+  "timer"
+  "duration"
+  "attributes"
+] @attribute
 
-;; ============================================================
-;; DROOLS-SPECIFIC OPERATORS
-;; ============================================================
+; ============================================================
+; DROOLS-SPECIFIC OPERATORS
+; ============================================================
 
-;; Relational operators
 [
   "matches"
   "memberOf"
@@ -120,10 +123,6 @@
   "excludes"
   "soundslike"
   "str"
-] @keyword.operator
-
-;; Temporal operators
-[
   "after"
   "before"
   "coincides"
@@ -137,271 +136,111 @@
   "overlappedby"
   "starts"
   "startedby"
+  "instanceof"
 ] @keyword.operator
 
-;; ============================================================
-;; OPERATORS
-;; ============================================================
+; ============================================================
+; TYPE KEYWORDS
+; ============================================================
 
-;; Comparison operators
 [
-  "=="
-  "!="
-  "<"
-  ">"
-  "<="
-  ">="
-] @operator
+  "byte"
+  "short"
+  "int"
+  "long"
+  "float"
+  "double"
+  "boolean"
+  "char"
+  "void"
+] @type.builtin
 
-;; Logical operators
-[
-  "&&"
-  "||"
-  "!"
-] @operator
-
-;; Arithmetic operators
-[
-  "+"
-  "-"
-  "*"
-  "/"
-  "%"
-] @operator
-
-;; Bitwise operators
-[
-  "&"
-  "|"
-  "^"
-  "~"
-  "<<"
-  ">>"
-  ">>>"
-] @operator
-
-;; Assignment operators
-[
-  "="
-  "+="
-  "-="
-  "*="
-  "/="
-  "&="
-  "|="
-  "^="
-  "%="
-  "<<="
-  ">>="
-  ">>>="
-] @operator
-
-;; Other operators
-[
-  "?"
-  ":"
-  "++"
-  "--"
-  "instanceof"
-] @operator
-
-;; Drools-specific operators
-[
-  ":="  ; unification
-] @operator
-
-;; ============================================================
-;; LITERALS
-;; ============================================================
+; ============================================================
+; LITERALS
+; ============================================================
 
 (string_literal) @string
 (number) @number
-(boolean_literal) @constant.builtin.boolean
+(boolean_literal) @boolean
 (null_literal) @constant.builtin
-(time_interval) @number.time
+(time_interval) @number.special
 
-;; ============================================================
-;; IDENTIFIERS
-;; ============================================================
+; ============================================================
+; "this" / "super" / "new"
+; ============================================================
 
-;; Rule names
-(rule_decl
-  name: (string_literal) @string.special) @markup.heading
+["this" "super"] @variable.builtin
+"new" @keyword
 
-(rule_decl
-  name: (identifier) @markup.heading)
+; ============================================================
+; ANNOTATIONS
+; ============================================================
 
-;; Query names
-(query_decl
-  name: (string_literal) @string.special) @markup.heading
+(annotation "@" @punctuation.special)
+(annotation (qualified_name) @attribute)
 
-(query_decl
-  name: (identifier) @markup.heading)
+; ============================================================
+; RULE / QUERY / FUNCTION NAMES
+; ============================================================
 
-;; Function names
-(function_decl
-  (identifier) @function)
+(rule_decl "rule" . (string_literal) @string.special)
+(rule_decl "rule" . (identifier) @string.special)
+(query_decl "query" . (string_literal) @string.special)
+(query_decl "query" . (identifier) @string.special)
+(function_decl "function" . _ . (identifier) @function)
 
-;; Package and imports
-(package_decl
-  (qualified_name) @namespace)
+; ============================================================
+; PATTERN BINDING LABELS  ($p :)
+; ============================================================
 
-(import_decl
-  (import_path) @namespace)
+(label (identifier) @variable.parameter)
+(unif  (identifier) @variable.parameter)
 
-(global_decl
-  (identifier) @variable.global)
+; ============================================================
+; TYPES
+; ============================================================
 
-;; Type declarations
-(type_declaration
-  name: (qualified_name) @type)
+(lhs_pattern (qualified_name) @type)
+(type (qualified_type (qualified_name (identifier) @type)))
 
-(enum_declaration
-  (qualified_name) @type)
+; ============================================================
+; FIELD / TYPE DECLARATIONS
+; ============================================================
 
-(enumerative
-  (identifier) @constant)
+(type_declaration name: (qualified_name) @type.definition)
+(field_decl name: (identifier) @variable.member)
+(enum_declaration (qualified_name) @type.definition)
+(enumerative (identifier) @constant)
 
-;; Field declarations
-(field_decl
-  name: (identifier) @variable.member)
+; ============================================================
+; METHOD CALLS
+; ============================================================
 
-;; ============================================================
-;; PATTERNS
-;; ============================================================
+(method_call method: (identifier) @function.method)
 
-;; Pattern types
-(lhs_pattern
-  type: (qualified_name) @type)
+; ============================================================
+; FIELD ACCESS
+; ============================================================
 
-;; Pattern binding labels
-(label
-  (identifier) @variable.parameter)
+(field_access (identifier) @variable.member)
 
-;; Unification
-(unif
-  (identifier) @variable.parameter)
-
-;; Constraint bindings
-(constraint_binding
-  (label
-    (identifier) @variable.parameter)
-  (identifier) @variable.member)
-
-(constraint_unification
-  (unif
-    (identifier) @variable.parameter)
-  (identifier) @variable.member)
-
-;; ============================================================
-;; EXPRESSIONS
-;; ============================================================
-
-;; Method calls
-(method_call
-  method: (identifier) @function.method)
-
-;; Field access
-(field_access
-  (identifier) @variable.member)
-
-;; Object creation
-(object_creation
-  (type) @type)
-
-;; Cast expressions
-(cast_expression
-  (type) @type)
-
-;; ============================================================
-;; TYPES
-;; ============================================================
-
-(primitive_type) @type.builtin
-
-(qualified_type
-  (qualified_name) @type)
-
-(type_argument
-  (type) @type)
-
-;; ============================================================
-;; ANNOTATIONS
-;; ============================================================
-
-(annotation
-  "@" @punctuation.special
-  (qualified_name) @attribute)
-
-(annotation_element_value_pair
-  key: (identifier) @variable.parameter)
-
-;; ============================================================
-;; VARIABLES AND PARAMETERS
-;; ============================================================
-
-(parameter
-  (identifier) @variable.parameter)
-
-(variable_declaration
-  (identifier) @variable)
-
-(for_init
-  (identifier) @variable)
-
-;; ============================================================
-;; PUNCTUATION
-;; ============================================================
+; ============================================================
+; OPERATORS
+; ============================================================
 
 [
-  "("
-  ")"
-  "["
-  "]"
-  "{"
-  "}"
-] @punctuation.bracket
+  "=" "+=" "-=" "*=" "/=" "&=" "|=" "^=" "%=" "<<=" ">>=" ">>>="
+  "==" "!=" "<" ">" "<=" ">="
+  "+" "-" "*" "/" "%"
+  "&&" "||" "!"
+  "&" "|" "^" "~" "<<" ">>" ">>>"
+  "++" "--"
+  "?" ":"
+] @operator
 
-[
-  ";"
-  ","
-  "."
-  "?."
-  "#"
-] @punctuation.delimiter
+; ============================================================
+; PUNCTUATION
+; ============================================================
 
-;; ============================================================
-;; COMMENTS
-;; ============================================================
-
-(comment) @comment
-
-;; ============================================================
-;; SPECIAL
-;; ============================================================
-
-;; Wildcard in imports
-(import_path "*" @constant.builtin)
-
-;; Question mark for optional patterns
-(lhs_pattern "?" @operator)
-
-;; Named consequence markers
-(named_consequence_invocation
-  "[" @punctuation.special
-  (identifier) @label
-  "]" @punctuation.special)
-
-(breaking_named_consequence_invocation
-  "[" @punctuation.special
-  (identifier) @label
-  "]" @punctuation.special)
-
-;; ============================================================
-;; IDENTIFIERS (catch-all for remaining)
-;; ============================================================
-
-(identifier) @variable
-
-;; Qualified names in expressions
-(qualified_name) @variable
+["(" ")" "[" "]" "{" "}"] @punctuation.bracket
+["." "," ";" "?."] @punctuation.delimiter

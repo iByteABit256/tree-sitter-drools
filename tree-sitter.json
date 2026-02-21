@@ -11,8 +11,7 @@
       ],
       "injection-regex": "^drools$",
       "class-name": "TreeSitterDrools",
-      "highlights": "./queries/highlights.scm",
-      "locals": "./queries/locals.scm"
+      "highlights": "./queries/highlights.scm"
     }
   ],
   "metadata": {

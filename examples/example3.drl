@@ -6,13 +6,13 @@ import com.example.model.Claim
 import static com.example.utils.DateUtils.*
 import function com.example.calculator.RiskCalculator.calculateRisk
 
-// Global variables - test @local.definition.var
+// Global variables
 global org.slf4j.Logger logger
 global java.util.List approvedClaims
 global com.example.service.NotificationService notifier
 
 // ============================================================
-// TYPE DECLARATIONS - test @local.definition.type
+// TYPE DECLARATIONS
 // ============================================================
 
 declare Customer
@@ -49,7 +49,7 @@ declare window recentClaims
 end
 
 // ============================================================
-// FUNCTIONS - test @local.definition.function and parameters
+// FUNCTIONS
 // ============================================================
 
 function void logDecision(String ruleName, String decision, String reason) {
@@ -59,7 +59,7 @@ function void logDecision(String ruleName, String decision, String reason) {
 function double calculatePremiumDiscount(Customer customer, Policy policy) {
     double baseDiscount = 0.0;
     
-    // Local variables - test @local.definition.var
+    // Local variables
     int age = customer.getAge();
     int yearsWithCompany = customer.getLoyaltyYears();
     
@@ -83,11 +83,11 @@ function boolean isHighRisk(double riskScore, int claimCount) {
 }
 
 // ============================================================
-// QUERIES - test @local.definition.function and query parameters
+// QUERIES
 // ============================================================
 
 query "findCustomersByRisk" (double minRisk, double maxRisk)
-    // Pattern binding - test @local.definition.var
+    // Pattern binding
     $customer : Customer(riskScore >= minRisk, riskScore <= maxRisk)
 end
 
@@ -112,7 +112,7 @@ when
     // Pattern binding creates local variable $c
     $c : Customer(riskScore == 0)
 then
-    // Reference to $c - test @local.reference.var
+    // Reference to $c
     double risk = calculateRisk($c);
     modify($c) { setRiskScore(risk) };
     logDecision("Classify Customer Risk", "CALCULATED", "Initial risk assessment");
@@ -353,7 +353,7 @@ then
 end
 
 // ============================================================
-// NAMED CONSEQUENCES - test @local.definition.label
+// NAMED CONSEQUENCES
 // ============================================================
 
 rule "Tiered Claim Processing"
@@ -618,7 +618,7 @@ when
     $customer : Customer()
     $policies : List() from collect(Policy(customer == $customer))
 then
-    // Local variables in RHS - test @local.definition.var and scoping
+    // Local variables in RHS
     int activeCount = 0;
     double totalPremium = 0.0;
     
