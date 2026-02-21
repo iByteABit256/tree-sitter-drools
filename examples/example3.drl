@@ -531,13 +531,12 @@ end
 
 rule "Premium Customer Benefits"
 when
+    $customer : Customer(age >= 50, riskScore < 30)
     or
-        and
-            $customer : Customer(age >= 50, riskScore < 30)
-            $policy : Policy(customer == $customer, yearsActive >= 10)
-        and
-            $customer : Customer(status == "VIP")
-            $policy : Policy(customer == $customer, totalPremium > 5000)
+    $policy : Policy(customer == $customer, yearsActive >= 10)
+    and
+    $customer : Customer(status == "VIP")
+    $policy : Policy(customer == $customer, totalPremium > 5000)
 then
     applyPremiumBenefits($customer, $policy);
     modify($policy) { 
