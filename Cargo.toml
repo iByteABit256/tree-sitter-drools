@@ -1,7 +1,7 @@
 [package]
 name = "tree-sitter-drools"
 description = "Drools grammar for tree-sitter"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Pavlos Smith <paulsmith4561@proton.me>"]
 license = "AGPLv3"
 readme = "README.md"
